@@ -4,7 +4,6 @@
 int main(void)
 {
     GLFWwindow* window;
-
     /* Initialize the library */
     if (!glfwInit())
         return -1;
@@ -52,7 +51,6 @@ int main(void)
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-         
 #ifdef DEMO
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
