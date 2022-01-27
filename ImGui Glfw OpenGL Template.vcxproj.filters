@@ -100,4 +100,8 @@
     <Library Include="Dependencies\GLFW\glfw3.lib" />
     <Library Include="Dependencies\GLEW\glew32s.lib" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Statiune.db" />
+    <None Include="Pensiune.db" />
+  </ItemGroup>
 </Project>
