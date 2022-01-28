@@ -1,10 +1,10 @@
-LOFT_CUBE 4_stele 346 60 756 432
-Casa_Ella 3_stele 138 20 358 432
-Casa_Tibi 3_stele 247 30 890 432
-Dragului 4_stele 350 55 158 565
-Bulevard_Predeal 4_stele 365 66 787 565
-Mountain_View 3_stele 218 45 595 565
-Casa_Marica 4_stele 333 62 900 282
-SOIMUL 3_stele 180 56 876 282
-Vila_Alma 3_stele 150 38 565 234
-Topaz 3_stele 260 49 789 234
+LOFT_CUBE 4_stele 346 60 756 432 https://cf.bstatic.com/xdata/images/hotel/max1024x768/300612608.jpg?k=be834a74e0c8936e7dbbd291b5033205f163ae52ebd9a18bc35a44d112dcd9c9&o=&hp=1
+Casa_Ella 3_stele 138 20 358 432 https://cf.bstatic.com/xdata/images/hotel/max500/88639577.jpg?k=aa5937fe5603e060697ce4c477a2308952df497411125e4b9da538765b9723d9&o=&hp=1
+Casa_Tibi 3_stele 247 30 890 432 https://www.turistinfo.ro/images/cazare/642635.jpg
+Dragului 4_stele 350 55 158 565 https://cf.bstatic.com/xdata/images/hotel/max1280x900/107744948.jpg?k=aef3f0d2f6f5f82168c7d9013b5230a98e5ad156fb2bc602732798a2a7c2a793&o=&hp=1
+Bulevard_Predeal 4_stele 365 66 787 565 https://www.travelro.ro/images/predeal/hotel-bulevard-predeal-35.jpg 
+Mountain_View 3_stele 218 45 595 565 https://s3-eu-west-1.amazonaws.com/jeka-public/images/main/ATRIUM-MOUNTAIN-VIEW-896769.jpg
+Casa_Marica 4_stele 333 62 900 282 https://cf.bstatic.com/xdata/images/hotel/max1024x768/306547123.jpg?k=0aa3feec34d49e737bc3906c8bcb10c9f5370b62d4eccb8a694b5e4b79f630a8&o=&hp=1
+SOIMUL 3_stele 180 56 876 282 https://www.travelro.ro/images/baile-herculane/hotel-pensiunea-soimul-baile-herculane-1.jpg
+Vila_Alma 3_stele 150 38 565 234 https://www.alegecazare.ro/pimages/12500/big-vila-alma-baile-felix-t0xj8x6i611j.jpg
+Topaz 3_stele 260 49 789 234 https://cf.bstatic.com/xdata/images/hotel/max1024x768/5068918.jpg?k=c256a3a640f8c5b65c83e72f6d2c3ac086cfe8e951ab6006c48565d0e5b220a3&o=&hp=1

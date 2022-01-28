@@ -27,8 +27,6 @@ int main(void)
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init();
 
-    // Start App
-    AppStart(window);
 
     if (glewInit() != GLEW_OK)
     {
@@ -42,6 +40,8 @@ int main(void)
 #endif // DEMO
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
+    // Start App
+    AppStart(window);
     // Main loop
     while (!glfwWindowShouldClose(window))
     {
