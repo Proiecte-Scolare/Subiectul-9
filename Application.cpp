@@ -125,6 +125,7 @@ void StergePensiune(int idx)
 {
 	for (int j = idx; j < pensN - 1; ++j)
 		pensiuni[j] = pensiuni[j + 1];
+	pensN--;
 }
 
 int GetNewCodPensiune()
@@ -578,8 +579,8 @@ void AppRender()
 					{
 						statiuni[j] = statiuni[j + 1];
 					}
-
 					statN--;
+
 					ImGui::PopFont();
 					ImGui::End();
 					return;
