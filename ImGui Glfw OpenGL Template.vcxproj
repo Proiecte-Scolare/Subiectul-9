@@ -207,6 +207,12 @@
     <None Include="Pensiune.db" />
     <None Include="Statiune.db" />
   </ItemGroup>
+  <ItemGroup>
+    <Font Include="..\..\..\Downloads\Roboto\Roboto-Medium.ttf" />
+    <Font Include="Fonts\Roboto-Bold.ttf" />
+    <Font Include="Fonts\Roboto-Medium.ttf" />
+    <Font Include="Fonts\Roboto-Thin.ttf" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

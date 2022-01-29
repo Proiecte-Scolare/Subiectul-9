@@ -1,5 +1,6 @@
 #include "Common.h"
-
+ImFont* fontThin18{}, * fontRegular18{}, * fontBold18{};
+ImFont* fontThin24{}, * fontRegular24{}, * fontBold24{};
 void GLClearError()
 {
     while (glGetError() != GL_NO_ERROR);
@@ -44,5 +45,31 @@ bool GLCheckError()
 
 ImVec4 Rgb(uchar r, uchar g, uchar b)
 {
-	return { 255.0f / r,255.0f / g,255.0f / b,1.0f };
+	return { r/255.0f ,g/255.0f,b/255.0f,1.0f };
 }
+
+ImVec4 RandRgb()
+{
+	return ImVec4((float)rand() / RAND_MAX * 0.5 + 0.5, (float)rand() / RAND_MAX * 0.5 + 0.5, (float)rand() / RAND_MAX * 0.5 + 0.5, 1);
+}
+ImVec4 FromHex(char const* hexColor)
+{
+	int r, g, b;
+	if (*hexColor == '#')
+		hexColor++;
+	sscanf(hexColor, "%02x%02x%02x", &r, &g, &b);
+	return { (float)r / 255,(float)g / 255,(float)b / 255,1 };
+}
+void LoadFonts()
+{	// Setup fiont 
+	ImGuiIO& io = ImGui::GetIO();
+
+	fontThin18 = io.Fonts->AddFontFromFileTTF("Fonts/Roboto-Thin.ttf", 18);
+	fontRegular18 = io.Fonts->AddFontFromFileTTF("Fonts/Roboto-Medium.ttf", 18);
+	fontBold18 = io.Fonts->AddFontFromFileTTF("Fonts/Roboto-Bold.ttf", 18);
+
+	fontThin24 = io.Fonts->AddFontFromFileTTF("Fonts/Roboto-Thin.ttf", 24);
+	fontRegular24 = io.Fonts->AddFontFromFileTTF("Fonts/Roboto-Medium.ttf", 24);
+	fontBold24 = io.Fonts->AddFontFromFileTTF("Fonts/Roboto-Bold.ttf", 24);
+}
+

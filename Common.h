@@ -18,7 +18,7 @@
 #include <streambuf>
 #include <sstream> 
 #include <locale>
-
+#include <iomanip>
 typedef unsigned char uchar;
 typedef unsigned int uint;
 
@@ -33,3 +33,9 @@ void GLClearError();
 
 
 ImVec4 Rgb(uchar r, uchar g, uchar b);
+ImVec4 RandRgb();
+ImVec4 FromHex(char const* hexColor);
+extern ImFont* fontThin18, * fontRegular18, * fontBold18;
+extern ImFont* fontThin24, * fontRegular24, * fontBold24;
+
+void LoadFonts();

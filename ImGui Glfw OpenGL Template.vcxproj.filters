@@ -153,4 +153,10 @@
     <None Include="Dependencies\Curl\libcurl-x64.dll" />
     <None Include="StbImage\Imagini.db" />
   </ItemGroup>
+  <ItemGroup>
+    <Font Include="..\..\..\Downloads\Roboto\Roboto-Medium.ttf" />
+    <Font Include="Fonts\Roboto-Thin.ttf" />
+    <Font Include="Fonts\Roboto-Bold.ttf" />
+    <Font Include="Fonts\Roboto-Medium.ttf" />
+  </ItemGroup>
 </Project>

@@ -4,19 +4,18 @@
 #define NR_MAX_URL_POZA 201
 enum class LoadStatus
 {
-	NotProccesed,
-	Downloaded,
-	LoadedOnGpu
+	NotProccesed=0,
+	Downloaded=1,
+	LoadedOnGpu=2
 };
 
 struct Poza
 {
-	int codPensiune{};
 	uint renderId{};
 	char url[NR_MAX_URL_POZA]{};
 
 	LoadStatus loadStatus = LoadStatus::NotProccesed;
-	uchar* localBuffer=0;
+	uchar* localBuffer{};
 	int height{};
 	int width{};
 };

@@ -19,7 +19,7 @@ stringstream LoadImageIntoBuffer(CURL* curlCtx,const char* url)
 	CURLcode rc = curl_easy_perform(curlCtx);
 	if (rc)
 	{
-		printf("!!! Failed to download: %s\n", url);
+		//printf("!!! Failed to download: %s\n", url);
 		return ss;
 	}
 
@@ -27,7 +27,7 @@ stringstream LoadImageIntoBuffer(CURL* curlCtx,const char* url)
 	curl_easy_getinfo(curlCtx, CURLINFO_RESPONSE_CODE, &res_code);
 	if (!((res_code == 200 || res_code == 201) && rc != CURLE_ABORTED_BY_CALLBACK))
 	{
-		printf("!!! Response code: %d\n", res_code);
+		//printf("!!! Response code: %d\n", res_code);
 		return ss;
 	}
 	return ss;
@@ -64,6 +64,7 @@ void LoadImageToGpu(Poza& p)
 	}
 }
 thread* tDownload;
+
 void IncarcaPozeleAsync(Poza** poze,int len)
 {
 	Poza** c_poze = new Poza*[len];
@@ -102,10 +103,14 @@ bool AfiseazaPoza(Poza& p,const ImVec2& size)
 
 void AfiseazaPozele(Poza* poze, const ImVec2& size, int len)
 {
+	auto ip = ImGui::GetCursorPos();
 	for (int i = 0; i < NR_MAX_POZE; i++)
 	{
+		auto pv = ImGui::GetCursorPos();
 		AfiseazaPoza(poze[i], size);
+		ImGui::SetCursorPos({ pv.x + size.x + 10,pv.y });
 	}
+	ImGui::SetCursorPos({ ip.x,ip.y + size.y + 10 });
 }
 
 void AfiseazaPoze()
