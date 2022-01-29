@@ -10,7 +10,7 @@ int main(void)
 
     /* Create a windowed mode window an d its OpenGL context */
     /// glfwWindowHint(GLFW_MAXIMIZED, GL_TRUE); - START MAXIMIZED
-    window = glfwCreateWindow(800, 600, "New Project", NULL, NULL);
+    window = glfwCreateWindow(900, 600, "New Project", NULL, NULL);
 
     if (!window)
     {

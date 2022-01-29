@@ -6,6 +6,8 @@
 #define NR_MAX_STATIUNI 300
 #define NR_MAX_PENSIUNI 300
 #define NR_MAX_NUME 21
+
+#define TOOLTIP_COD 0
 using namespace std;
 
 struct Pensiune
@@ -39,54 +41,26 @@ Poza background = { 0,"https://calatorinbascheti.ro/wp-content/uploads/2019/11/6
 
 #pragma region Utility functions
 
-enum ModSortareStatiuni
+enum class ModSortareStatiuni
 {
 	DJudetDStat,
 	DStat,
-	DNr,
+	DNrLoc,
 };
-void SortareStatiuni(ModSortareStatiuni mod)
-{
-	int cmp;
-	switch (mod)
-	{
-	case DJudetDStat:
-		for(int i =0;i<statN;i++)
-			for (int j = i + 1; j < statN; j++)
-			{
-				cmp = strcmp(statiuni[i].numeJudet, statiuni[j].numeJudet);
-				if (cmp > 0)
-					swap(statiuni[i], statiuni[j]);
-				else if (cmp == 0)
-				{
-					cmp = strcmp(statiuni[i].numeStatiune, statiuni[j].numeStatiune);
-					if(cmp > 0)
-						swap(statiuni[i], statiuni[j]);
-				}
-			}
-		break;
-	case DStat:
-		for (int i = 0; i < statN; i++)
-			for (int j = i + 1; j < statN; j++)
-			{
-				cmp = strcmp(statiuni[i].numeStatiune, statiuni[j].numeStatiune);
-				if (cmp > 0)
-					swap(statiuni[i], statiuni[j]);
-			}
-		break;
-	case DNr:
-		for (int i = 0; i < statN; i++)
-			for (int j = i + 1; j < statN; j++)
-			{
-				if (statiuni[i].nrLocuriLibere < statiuni[j].nrLocuriLibere)
-					swap(statiuni[i], statiuni[j]);
-			}
-		break;
-	default:
-		break;
-	}
-}
 
+enum class ModSortarePensiuni
+{
+	DNume,
+	DPretCresc,
+	DPretDescr,
+	DNrLoc,
+};
+
+void SetRelPos(float x, float y)
+{
+	ImVec2 screen_pos = ImGui::GetCursorPos();
+	ImGui::SetCursorPos({ screen_pos.x + x,screen_pos.y + y });
+}
 
 void EliminaUnderscore(char * s)
 {
@@ -109,7 +83,7 @@ void AdaugaLocLiberLaStatiune(int codStatiune,int nr)
 	}
 }
 
-void AddPensiune(const char* numePens,const char* categorie,int pretLocPeZi,int codPensiune,int numarLocuri,int codStatiune, const char* poze[NR_MAX_POZE])
+Pensiune& AddPensiune(const char* numePens,const char* categorie,int pretLocPeZi,int codPensiune,int numarLocuri,int codStatiune, const char* poze[NR_MAX_POZE])
 {
 	Pensiune p;
 	strcpy(p.numePensiune, numePens);
@@ -118,22 +92,22 @@ void AddPensiune(const char* numePens,const char* categorie,int pretLocPeZi,int 
 	p.codPensiune = codPensiune;
 	p.codStatiune=codStatiune;
 	p.numarLocuri=numarLocuri;
-	//for (int i = 0; i < NR_MAX_POZE; i++)
-		//strcpy(p.poze[i].url, poze[i]); TODO
 	pensiuni[pensN++] = p;
+	return pensiuni[pensN-1];
 }
 
-void AddStatiune(const char* numeStatiune,const char* numeJudet,int codStatiune,int nrLocuriLibere)
+Statiune& AddStatiune(const char* numeStatiune, const char* numeJudet, int codStatiune)
 {
 	Statiune s;
 	strcpy(s.numeStatiune, numeStatiune);
 	strcpy(s.numeJudet, numeJudet);
 	s.codStatiune = codStatiune;
-	s.nrLocuriLibere = nrLocuriLibere;
+	s.nrLocuriLibere = 0;
 	statiuni[statN++] = s;
+	return statiuni[statN-1];
 }
 
-int GetCodPensiune()
+int GetNewCodStatiune()
 {
 	bool b = 0;
 	int r;
@@ -142,6 +116,26 @@ int GetCodPensiune()
 		b = 0;
 		r = rand();
 		for (int i = 0; i < statN; ++i)
+			if (r == statiuni[i].codStatiune) b = 1;
+	} while (b);
+	return r;
+}
+
+void StergePensiune(int idx)
+{
+	for (int j = idx; j < pensN - 1; ++j)
+		pensiuni[j] = pensiuni[j + 1];
+}
+
+int GetNewCodPensiune()
+{
+	bool b = 0;
+	int r;
+	do
+	{
+		b = 0;
+		r = rand();
+		for (int i = 0; i < pensN; ++i)
 			if (r == pensiuni[i].codPensiune) b = 1;
 	} while (b);
 	return r;
@@ -156,6 +150,7 @@ int GetCodStatiuneFromName(const char* nume)
 			return statiuni[i].codStatiune;
 		}
 	}
+	return 0;
 }
 
 void CenterNextWindow(int n = 3, int m = 3)
@@ -163,12 +158,6 @@ void CenterNextWindow(int n = 3, int m = 3)
 	float sx = display_w / m, sy = display_h / n;
 	ImGui::SetNextWindowSize({ (m - 2) * sx,(n - 2) * sy });
 	ImGui::SetNextWindowPos({ sx,sy });
-}
-
-void SetRelPos(float x, float y)
-{
-	ImVec2 screen_pos = ImGui::GetCursorPos();
-	ImGui::SetCursorPos({ screen_pos.x + x,screen_pos.y + y });
 }
 
 void InputTextTable(const char** lable, char** buf,int rows,float voff=-3, ImGuiInputTextFlags_ flags= ImGuiInputTextFlags_None)
@@ -186,7 +175,142 @@ void InputTextTable(const char** lable, char** buf,int rows,float voff=-3, ImGui
 		ImGui::EndTable();
 	}
 }
+
+static void ToolTip(const char* desc)
+{
+#if TOOLTIP_COD
+	if (ImGui::IsItemHovered())
+	{
+		ImGui::PushFont(fontRegular18);
+		ImGui::BeginTooltip();
+		ImGui::PushTextWrapPos(ImGui::GetFontSize() * 12);
+		ImGui::TextUnformatted(desc);
+		ImGui::PopTextWrapPos();
+		ImGui::EndTooltip();
+		ImGui::PopFont();
+	}
+#endif
+}
+
 #pragma endregion
+
+#pragma region Sortare
+
+void SortarePensiuni(ModSortarePensiuni mod)
+{
+
+	if (isDoneLoadingImages == false)
+		return;
+	switch (mod)
+	{
+	case ModSortarePensiuni::DNume:
+		for (int i = 0; i < pensN; i++)
+			for (int j = i + 1; j < pensN; j++)
+				if (strcmp(pensiuni[i].numePensiune, pensiuni[j].numePensiune) > 0)
+					swap(pensiuni[i], pensiuni[j]);
+		break;
+	case ModSortarePensiuni::DPretCresc:
+		for (int i = 0; i < pensN; i++)
+			for (int j = i + 1; j < pensN; j++)
+				if (pensiuni[i].pretLocPeZi > pensiuni[j].pretLocPeZi)
+					swap(pensiuni[i], pensiuni[j]);
+		break;
+	case ModSortarePensiuni::DPretDescr:
+		for (int i = 0; i < pensN; i++)
+			for (int j = i + 1; j < pensN; j++)
+				if (pensiuni[i].pretLocPeZi < pensiuni[j].pretLocPeZi)
+					swap(pensiuni[i], pensiuni[j]);
+		break;
+	case ModSortarePensiuni::DNrLoc:
+		for (int i = 0; i < pensN; i++)
+			for (int j = i + 1; j < pensN; j++)
+				if (pensiuni[i].numarLocuri < pensiuni[j].numarLocuri)
+					swap(pensiuni[i], pensiuni[j]);
+		break;
+	default:
+		break;
+	}
+}
+
+void SortareStatiuni(ModSortareStatiuni mod)
+{
+
+	int cmp;
+	switch (mod)
+	{
+	case ModSortareStatiuni::DJudetDStat:
+		for (int i = 0; i < statN; i++)
+			for (int j = i + 1; j < statN; j++)
+			{
+				cmp = strcmp(statiuni[i].numeJudet, statiuni[j].numeJudet);
+				if (cmp > 0)
+					swap(statiuni[i], statiuni[j]);
+				else if (cmp == 0)
+				{
+					cmp = strcmp(statiuni[i].numeStatiune, statiuni[j].numeStatiune);
+					if (cmp > 0)
+						swap(statiuni[i], statiuni[j]);
+				}
+			}
+		break;
+	case ModSortareStatiuni::DStat:
+		for (int i = 0; i < statN; i++)
+			for (int j = i + 1; j < statN; j++)
+			{
+				cmp = strcmp(statiuni[i].numeStatiune, statiuni[j].numeStatiune);
+				if (cmp > 0)
+					swap(statiuni[i], statiuni[j]);
+			}
+		break;
+	case ModSortareStatiuni::DNrLoc:
+		for (int i = 0; i < statN; i++)
+			for (int j = i + 1; j < statN; j++)
+			{
+				if (statiuni[i].nrLocuriLibere < statiuni[j].nrLocuriLibere)
+					swap(statiuni[i], statiuni[j]);
+			}
+		break;
+	default:
+		break;
+	}
+}
+
+ModSortarePensiuni DropDownSortarePensiune()
+{
+
+	SetRelPos(0, 4);
+	ImGui::Text("Sortare: ");
+	ImGui::SameLine();
+	static const char* sortOp[] = { "Nume Pensiune","Pret Crescator","Pret Descrescator","Locuri Libere" };
+	static const char* sortCurrent = "";
+
+	ImGui::SetNextItemWidth(200);
+	SetRelPos(0, -4);
+	static int sortCurenti = 0;
+	if (ImGui::BeginCombo("##Sortcombo2", sortCurrent, ImGuiComboFlags_HeightSmall))
+	{
+		for (int i = 0; i < 4; i++)
+		{
+			bool is_selected = (sortCurrent == sortOp[i]);
+			if (ImGui::Selectable(sortOp[i], is_selected, 0))
+			{
+				if (isDoneLoadingImages == false)
+					break;
+				sortCurrent = sortOp[i];
+				SortarePensiuni((ModSortarePensiuni)i);
+			}
+			if (is_selected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+	return (ModSortarePensiuni)sortCurenti;
+}
+
+#pragma endregion
+
 
 stringstream LoadImageIntoBuffer(const char* url);
 
@@ -256,6 +380,7 @@ void AppStart(GLFWwindow* _window)
 // Meniuri active
 bool mainWindow = 1;
 bool adaugaPensiune = 0;
+bool adaugaStatiune = 0;
 bool isInMenu1 = 1;
 bool veziPensiuni = 0;
 bool veziStatiuni = 0;
@@ -280,8 +405,7 @@ void AppRender()
 	style->WindowRounding = { 10 };
 	/// MainWindow
 	ImGui::PushFont(fontBold24);
-
-	CenterNextWindow(10, 10);
+	CenterNextWindow(15, 15);
 
 	ImGui::Begin("     Meniu", &mainWindow, ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_AlwaysAutoResize );
 	ImGui::TextColored(Rgb(206, 220, 170),"Pensiunea perfecta");
@@ -296,8 +420,13 @@ void AppRender()
 	style->FramePadding = { 4,4 };
 	if (veziPensiuni)
 	{
+		auto pvv = ImGui::GetCursorPosY();
 		if (ImGui::Button("Inapoi##2"))
 			veziPensiuni = false, isInMenu1 = 1;
+		auto pv = ImGui::GetCursorPos();
+		ImGui::SetCursorPos({ ImGui::GetWindowWidth() - 300, pvv });
+		DropDownSortarePensiune();
+		ImGui::SetCursorPos(pv);
 		SetRelPos(0, 20);
 		for (int i = 0; i < pensN; i++)
 		{
@@ -336,8 +465,9 @@ void AppRender()
 			ImGui::SetCursorPos({ ImGui::GetWindowWidth() - 400, 45 });
 			ImGui::Text("Sortare: ");
 			ImGui::SameLine();
-			static const char* sortOp[] = { "Nume Judet","Nume Statiune","Nr. locuri libere" };
+			static const char* sortOp[] = { "Nume Judet","Nume Statiune","Locuri Libere" };
 			static const char* sortCurrent = "";
+			static ModSortareStatiuni sortCurrenti = ModSortareStatiuni::DJudetDStat;
 			
 			ImGui::SetNextItemWidth(200);
 			if (ImGui::BeginCombo("##Sortcombo", sortCurrent, ImGuiComboFlags_HeightSmall))
@@ -349,6 +479,7 @@ void AppRender()
 					{
 						sortCurrent = sortOp[i];
 						SortareStatiuni((ModSortareStatiuni)i);
+						sortCurrenti = (ModSortareStatiuni)i;
 					}
 					if (is_selected)
 					{
@@ -358,6 +489,68 @@ void AppRender()
 				ImGui::EndCombo();
 			}
 			ImGui::SetCursorPos(pv1);
+			/// Meniu de adaugare statiune
+			static char numeStat[NR_MAX_NUME]{};
+			if (ImGui::Button("Adauga"))
+			{
+				adaugaStatiune = true;
+				memset(numeStat, 0, IM_ARRAYSIZE(numeStat));
+			}
+			if (adaugaStatiune)
+			{
+				ImGui::SetNextWindowSize({ 420,250 }, ImGuiCond_FirstUseEver);
+				ImGui::SetNextWindowPos({ ImGui::GetWindowWidth() / 2,ImGui::GetWindowHeight() / 2 }, ImGuiCond_FirstUseEver);
+
+				ImGui::Begin("Adauga o noua statiune", &adaugaStatiune, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse);
+
+				static const char* c1[] = { "Nume Statiune: ","Judet: "};
+				static char* c2[] = { numeStat,0};
+				static const char* judetCbx=0;
+				static const char* judete[] = { "Alba","Arad","Arges","Bacau","Bihor","BistritaNasaud","Botosani","Braila","Brasov","Buzau","Calarasi","CarasSeverin","Cluj","Constanta","Covasna","Dambovita","Dolj","Galati","Giurgiu","Gorj","Harghita","Hunedoara","Ialomita","Iasi","Ilfov","Maramures","Mehedinti","Mures","Neamt","Olt","Prahova","Salaj","SatuMare","Sibiu","Suceava","Teleorman","Timis","Tulcea","Vaslui","Valcea","Vrancea" };
+				if (ImGui::BeginTable("table2", 2))
+				{
+					for (int row = 0; row < 2; row++)
+					{
+						ImGui::TableNextRow();
+						ImGui::TableNextColumn();
+						ImGui::Text(c1[row]);
+						ImGui::TableNextColumn();
+						if (row == 1)
+						{
+							/// ComboBox cu Judete
+							if (ImGui::BeginCombo("##combo5", judetCbx))
+							{
+								for (int i = 0; i < IM_ARRAYSIZE(judete); i++)
+								{
+									bool is_selected = (judetCbx == judete[i]);
+									if (ImGui::Selectable(judete[i], is_selected))
+									{
+										judetCbx = judete[i];
+									}
+									if (is_selected)
+									{
+										ImGui::SetItemDefaultFocus();
+									}
+								}
+								ImGui::EndCombo();
+							}
+							else
+								ImGui::SetWindowFocus();
+						}
+						else
+							ImGui::InputText(("##" + string(c1[row])).c_str(), c2[row], NR_MAX_NUME);
+					}
+					ImGui::EndTable();
+				}
+
+				if (ImGui::Button("Gata") && judetCbx != 0)
+				{
+					adaugaStatiune = false;
+					Statiune& s = AddStatiune(numeStat, judetCbx, GetNewCodStatiune());
+					SortareStatiuni(sortCurrenti);
+				}
+				ImGui::End();
+			}
 			SetRelPos(0, 20);
 
 			for (int i = 0; i < statN; i++)
@@ -373,7 +566,25 @@ void AppRender()
 				ss << setw(10) << left << to_string(statiuni[i].nrLocuriLibere);
 				ss << setw(10) << left << "Judet:" << statiuni[i].numeJudet;
 
+				pv = ImGui::GetCursorPos();
 				ImGui::Text(ss.str().c_str());
+				ImGui::SetCursorPos({ ImGui::GetWindowWidth() - 80,pv.y-4 });
+				if (ImGui::Button(("Remove##v" + to_string(i)).c_str()))
+				{
+					for (int j = 0; j < pensN; j++)
+						if (pensiuni[j].codStatiune == statiuni[i].codStatiune)
+							StergePensiune(j);
+					for (int j = i; j < statN - 1; ++j)
+					{
+						statiuni[j] = statiuni[j + 1];
+					}
+
+					statN--;
+					ImGui::PopFont();
+					ImGui::End();
+					return;
+				}
+				ToolTip(("Cod Statiune: " + to_string(statiuni[i].codStatiune)).c_str());
 				SetRelPos(0, 10);
 			}
 		}
@@ -384,74 +595,103 @@ void AppRender()
 			ImGui::SetCursorPos(pv1);
 			SetRelPos(0, 20);
 		}
-		bool anteriorStatiune = false;
+
 		if (statiuneSelectata != 0)
 		{
 			SetRelPos(0, -30);
+			
 			ImGui::PushFont(fontBold24);
 			ImGui::Text("Statiunea"); ImGui::SameLine();
 			ImGui::TextColored(FromHex("FBAF00"), statiuneSelectata->numeStatiune);
 			ImGui::PopFont();
-			SetRelPos(0, 10);
+			SetRelPos(0, 10); 
+			auto pp = ImGui::GetCursorPos();
+			ImGui::SetCursorPos({ ImGui::GetWindowWidth() - 324,pp.y });
+			ModSortarePensiuni sortareCurr = DropDownSortarePensiune();
+			ImGui::SetCursorPos(pp);
 			
 			auto pv = ImGui::GetCursorPos();
 			ImGui::SetCursorPos({ pv.x + display_w / 3, pv.y });
 			ImGui::SetCursorPos(pv);
+			/// Meniu de adaugare Pensiune
+
+
+			static char numePens[NR_MAX_NUME]{};
+			static char categorie[NR_MAX_NUME]{};
+			static char pretStr[NR_MAX_NUME]{};
+			static char nrLocuriStr[NR_MAX_NUME]{};
+			static int nrLocuri = 0, pret = 0;
+			static const char* statiuneCbx = statiuneSelectata->numeStatiune;
+			static Poza poze[NR_MAX_POZE];
+
 			if (ImGui::Button("Adauga") && adaugaPensiune == false)
 			{
 				adaugaPensiune = 1;
+				memset(numePens,0,sizeof(numePens));
+				memset(categorie,0,sizeof(categorie));
+				memset(pretStr,0,sizeof(pretStr));
+				memset(nrLocuriStr,0,sizeof(nrLocuriStr));
+				nrLocuri = 0, pret = 0;
+				statiuneCbx = statiuneSelectata->numeStatiune;
+				for (int i = 0; i < NR_MAX_POZE; i++)
+					poze[i] = Poza();
 			}
 			if (adaugaPensiune)
 			{
-
-
-				static char numePens[NR_MAX_NUME]{};
-				static char categorie[NR_MAX_NUME]{};
-				static char pretStr[NR_MAX_NUME]{};
-				static char nrLocuriStr[NR_MAX_NUME]{};
-				static int nrLocuri=0, pret=0;
-				static const char* statiuneCbx = 0;
-
+			
 				ImGui::SetNextWindowSize({ 420,250 }, ImGuiCond_FirstUseEver);
 				ImGui::SetNextWindowPos({ ImGui::GetWindowWidth() / 2,ImGui::GetWindowHeight() / 2 }, ImGuiCond_FirstUseEver);
 
 				ImGui::Begin("Adauga o noua pensiune",&adaugaPensiune, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse);
 			
-				const char* c1[] = {"Nume pensiune: ","Statiune: ","Categorie: ","Pret: ","Locuri libere: "};
+				const char* c1[] = {"Nume Pensiune: ","Statiune: ","Categorie: ","Pret: ","Locuri libere: "};
 				char* c2[] = {numePens,0,categorie,pretStr,nrLocuriStr};
 				int flags[] = { 0,0,0,ImGuiInputTextFlags_CharsDecimal,ImGuiInputTextFlags_CharsDecimal };
-				// ComboBox cu statiuni
+
 				if (ImGui::BeginTable("table2", 2))
 				{
-					for (int row = 0; row < 5; row++)
+					for (int row = 0; row < 5 + NR_MAX_POZE; row++)
 					{
-						ImGui::TableNextRow();
-						ImGui::TableNextColumn();
-						ImGui::Text(c1[row]);
-						ImGui::TableNextColumn();
-						if (row == 1)
+						if (row < 5)
 						{
-							if (ImGui::BeginCombo("##combo", statiuneCbx))
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn();
+							ImGui::Text(c1[row]);
+							ImGui::TableNextColumn();
+							// ComboBox cu statiuni
+							if (row == 1)
 							{
-								for (int i = 0; i < statN; i++)
+								if (ImGui::BeginCombo("##combo", statiuneCbx))
 								{
-									bool is_selected = (statiuneCbx == statiuni[i].numeStatiune);
-									if (ImGui::Selectable(statiuni[i].numeStatiune, is_selected))
+									for (int i = 0; i < statN; i++)
 									{
-										statiuneCbx = statiuni[i].numeStatiune;
+										bool is_selected = (statiuneCbx == statiuni[i].numeStatiune);
+										if (ImGui::Selectable(statiuni[i].numeStatiune, is_selected))
+										{
+											statiuneCbx = statiuni[i].numeStatiune;
+										}
+										if (is_selected)
+										{
+											ImGui::SetItemDefaultFocus();
+										}
 									}
-									if (is_selected)
-									{
-										ImGui::SetItemDefaultFocus();
-									}
+									ImGui::EndCombo();
 								}
-								ImGui::EndCombo();
+								else
+									ImGui::SetWindowFocus();
 							}
 							else
-								ImGui::SetWindowFocus();
+								ImGui::InputText(("##" + string(c1[row])).c_str(), c2[row], NR_MAX_NUME, flags[row]);
 						}
-						else
-							ImGui::InputText(("##" + string(c1[row])).c_str(), c2[row], NR_MAX_NUME, flags[row]);
+						else /// Adaugare de poze
+						{
+							ImGui::TableNextRow();
+							ImGui::TableNextColumn();
+							ImGui::Text(("Img url" + to_string(row-4)).c_str());
+							ImGui::TableNextColumn();
+							ImGui::InputText(("##im" + to_string(row - 4)).c_str(), poze[row-5].url, NR_MAX_URL_POZA);
+						}
+						
 					}
 					ImGui::EndTable();
 				}
@@ -461,24 +701,38 @@ void AppRender()
 				if (ImGui::Button("Gata") && statiuneCbx !=0)
 				{
 					adaugaPensiune = false;
-					AddPensiune(numePens, categorie, pret, rand(), nrLocuri, GetCodStatiuneFromName(statiuneCbx), 0);
+					Pensiune& p = AddPensiune(numePens, categorie, pret, rand(), nrLocuri, GetCodStatiuneFromName(statiuneCbx), 0);
+					AdaugaLocLiberLaStatiune(p.codStatiune, p.numarLocuri);
+					///SortarePensiuni(sortareCurr);
+					for (int i = 0; i < NR_MAX_POZE; i++)
+					{
+						p.poze[i] = poze[i];
+					}
+					Poza* refToPoze[NR_MAX_POZE];
+					for (int i = 0; i < NR_MAX_POZE; i++)
+						refToPoze[i] = &p.poze[i];
+					IncarcaPozeleAsync(refToPoze, NR_MAX_POZE);
 				}
 				ImGui::End();
 			}
+			
+			bool anteriorStatiune = false;
 			for (int i = 0; i < pensN; i++)
 			{
 				if (pensiuni[i].codStatiune == statiuneSelectata->codStatiune)
 				{
 					anteriorStatiune = true;
 					stringstream ss;
-					ss << pensiuni[i].numePensiune <<"\t" << pensiuni[i].categorie << "\t" << pensiuni[i].pretLocPeZi << " lei pe noapte\t" << "Locuri ramase: " << pensiuni[i].numarLocuri;
+					ss << pensiuni[i].numePensiune << "\t" << pensiuni[i].categorie << "\t" << pensiuni[i].pretLocPeZi << " lei pe noapte\t" << "Locuri ramase: " << pensiuni[i].numarLocuri;
 					ImGui::TextColored(FromHex("F6F5F3"), ss.str().c_str());
-				
-					AfiseazaPozele(pensiuni[i].poze, { POZA_SIZE_X,POZA_SIZE_Y });
+
+					if (AfiseazaPozele(pensiuni[i].poze, { POZA_SIZE_X,POZA_SIZE_Y }))
+					{
+						SortarePensiuni(sortareCurr);
+					}
 					if (ImGui::Button(("Delete##" + to_string(i)).c_str()))
 					{
-						for (int j = i; j < pensN - 1; ++j)
-							pensiuni[j] = pensiuni[j + 1];
+						StergePensiune(i);
 						pensN--;
 						ImGui::PopFont();
 						ImGui::End();
@@ -486,6 +740,8 @@ void AppRender()
 					}
 
 				}
+				else
+					anteriorStatiune = false;
 				if (anteriorStatiune)
 					SetRelPos(0, 20);
 			}
@@ -506,8 +762,6 @@ void AppRender()
 	ImGui::PopFont();
 	ImGui::End();
 }
-
-
 void AppExit()
 {
 

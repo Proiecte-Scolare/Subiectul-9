@@ -22,7 +22,14 @@ struct Poza
 
 void IncarcaPozeleAsync(Poza** p, int len);
 
-/// Reaturneaza 1 daca a reusit sa dea display la poza si 0 in caz contrar 
-bool AfiseazaPoza(Poza& p, const ImVec2& size);
-
-void AfiseazaPozele(Poza* poze, const ImVec2& size, int len = NR_MAX_POZE);
+enum class ImgStatus
+{
+	NotLoaded = -1,
+	PrevLoaded = 0,
+	NowLoaded = 1
+};
+/// Returneaza un status care poate fi: imaginea nu s-a incarcat, imaginea a fost incarcata inainte ; imaginea a fost acum incarcata 
+/// este folosita de AfiseazaPozele
+ImgStatus AfiseazaPoza(Poza& p, const ImVec2& size);
+/// Returneaza 1 daca pensiunile trebuie resortate
+bool AfiseazaPozele(Poza* poze, const ImVec2& size, int len = NR_MAX_POZE);

@@ -37,5 +37,5 @@ ImVec4 RandRgb();
 ImVec4 FromHex(char const* hexColor);
 extern ImFont* fontThin18, * fontRegular18, * fontBold18;
 extern ImFont* fontThin24, * fontRegular24, * fontBold24;
-
+extern bool isDoneLoadingImages;
 void LoadFonts();

@@ -1,6 +1,7 @@
 #include "Poze.h"
 #include <future>
 using namespace std;
+bool isDoneLoadingImages = false;
 size_t CallBackFunction(void* ptr, size_t size, size_t nmemb, void* userdata)
 {
 	stringstream* stream = (stringstream*)(userdata);
@@ -19,7 +20,7 @@ stringstream LoadImageIntoBuffer(CURL* curlCtx,const char* url)
 	CURLcode rc = curl_easy_perform(curlCtx);
 	if (rc)
 	{
-		//printf("!!! Failed to download: %s\n", url);
+		printf("!!! Failed to download: %s\n", url);
 		return ss;
 	}
 
@@ -27,7 +28,7 @@ stringstream LoadImageIntoBuffer(CURL* curlCtx,const char* url)
 	curl_easy_getinfo(curlCtx, CURLINFO_RESPONSE_CODE, &res_code);
 	if (!((res_code == 200 || res_code == 201) && rc != CURLE_ABORTED_BY_CALLBACK))
 	{
-		//printf("!!! Response code: %d\n", res_code);
+		printf("!!! Response code: %d\n", res_code);
 		return ss;
 	}
 	return ss;
@@ -67,6 +68,13 @@ thread* tDownload;
 
 void IncarcaPozeleAsync(Poza** poze,int len)
 {
+	if (tDownload != 0)
+	{
+		tDownload->join();
+		delete tDownload;
+		tDownload = 0;
+	}
+	isDoneLoadingImages = false;
 	Poza** c_poze = new Poza*[len];
 	for (int i = 0; i < len; i++)
 		c_poze[i] = poze[i];
@@ -79,41 +87,45 @@ void IncarcaPozeleAsync(Poza** poze,int len)
 
 			curl_easy_cleanup(curlCtx);
 			delete[] c_poze;
+			isDoneLoadingImages = true;
 		});
 
 }
 
-bool AfiseazaPoza(Poza& p,const ImVec2& size)
+ImgStatus AfiseazaPoza(Poza& p,const ImVec2& size)
 {
+	ImgStatus status = ImgStatus::PrevLoaded;
 	if (strcmp(p.url, "") == 0 || p.height == 0 || p.width == 0)
-		return false;
+		return ImgStatus::NotLoaded;
 	if (p.renderId == 0)
 	{
 		if (p.loadStatus == LoadStatus::Downloaded)
 		{
 			LoadImageToGpu(p);
 			p.loadStatus = LoadStatus::LoadedOnGpu;
+			status = ImgStatus::NowLoaded;
 		}
 		else
-			return false;
+			return ImgStatus::NotLoaded;
 	}
 	ImGui::Image((ImTextureID)p.renderId, size);
-	return true;
+	return status;
 }
 
-void AfiseazaPozele(Poza* poze, const ImVec2& size, int len)
+bool AfiseazaPozele(Poza* poze, const ImVec2& size, int len)
 {
+	bool needsResorting = false;
 	auto ip = ImGui::GetCursorPos();
 	for (int i = 0; i < NR_MAX_POZE; i++)
 	{
 		auto pv = ImGui::GetCursorPos();
-		AfiseazaPoza(poze[i], size);
+		if (AfiseazaPoza(poze[i], size) == ImgStatus::NowLoaded)
+		{
+			needsResorting = true;
+		}
+
 		ImGui::SetCursorPos({ pv.x + size.x + 10,pv.y });
 	}
 	ImGui::SetCursorPos({ ip.x,ip.y + size.y + 10 });
-}
-
-void AfiseazaPoze()
-{
-
+	return needsResorting;
 }
