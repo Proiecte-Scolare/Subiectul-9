@@ -123,7 +123,7 @@ int GetNewCodStatiune()
 
 void StergePensiune(int idx)
 {
-	for (int j = idx; j < pensN - 1; ++j)
+	for (int j = idx; j < pensN ; ++j)
 		pensiuni[j] = pensiuni[j + 1];
 	pensN--;
 }
@@ -574,8 +574,8 @@ void AppRender()
 				{
 					for (int j = 0; j < pensN; j++)
 						if (pensiuni[j].codStatiune == statiuni[i].codStatiune)
-							StergePensiune(j);
-					for (int j = i; j < statN - 1; ++j)
+							StergePensiune(j),j--;
+					for (int j = i; j < statN; ++j)
 					{
 						statiuni[j] = statiuni[j + 1];
 					}
@@ -734,7 +734,6 @@ void AppRender()
 					if (ImGui::Button(("Delete##" + to_string(i)).c_str()))
 					{
 						StergePensiune(i);
-						pensN--;
 						ImGui::PopFont();
 						ImGui::End();
 						return;
