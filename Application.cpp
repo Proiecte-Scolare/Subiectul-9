@@ -762,7 +762,30 @@ void AppRender()
 	ImGui::PopFont();
 	ImGui::End();
 }
+char* AddUnderscore(char* p)
+{
+	char* pp;
+	pp = p;
+	while (*p)
+	{
+		if (*p == ' ') *p = '_';
+		p++;
+	}
+	return pp;
+}
 void AppExit()
 {
-
+	ofstream foutS("Statiuni2.db");
+	ofstream foutP("Pensiuni2.db");
+	for (int i = 0; i < statN; i++)
+	{
+		foutS << AddUnderscore(statiuni[i].numeStatiune) << " " << statiuni[i].numeJudet << " " << statiuni[i].codStatiune << '\n';
+	}
+	for (int i = 0; i < pensN; i++)
+	{
+		foutP << AddUnderscore(pensiuni[i].numePensiune) << " " << AddUnderscore(pensiuni[i].categorie) << " " << pensiuni[i].pretLocPeZi << " " << pensiuni[i].numarLocuri << " " << pensiuni[i].codPensiune << " " << pensiuni[i].codStatiune << " ";
+		for (int j = 0; j < NR_MAX_POZE; j++)
+			foutP << pensiuni[i].poze[j].url << " ";
+		foutP << '\n';
+	}
 }
