@@ -775,6 +775,10 @@ char* AddUnderscore(char* p)
 }
 void AppExit()
 {
+
+	auto ans = MessageBox(0, L"Salvezi?", L"Vrei sa salvezi?", MB_OKCANCEL);
+	if (ans == 2)
+		return;
 	ofstream foutS("Statiuni2.db");
 	ofstream foutP("Pensiuni2.db");
 	for (int i = 0; i < statN; i++)
