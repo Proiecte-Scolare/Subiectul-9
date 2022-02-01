@@ -6,7 +6,8 @@
 #define NR_MAX_STATIUNI 300
 #define NR_MAX_PENSIUNI 300
 #define NR_MAX_NUME 21
-#define TOOLTIP_COD 0
+#define TOOLTIP_COD 1
+#define SAVE_IN_SAME_FILE 0
 using namespace std;
 struct Pensiune
 {
@@ -577,6 +578,7 @@ void AppRender()
 				ss << setw(10) << left << to_string(statiuni[i].nrLocuriLibere);
 				ss << setw(10) << left << "Judet:" << statiuni[i].numeJudet;
 
+				ToolTip(("Cod Statiune: " + to_string(statiuni[i].codStatiune)).c_str());
 				pv = ImGui::GetCursorPos();
 				ImGui::Text(ss.str().c_str());
 				ImGui::SetCursorPos({ ImGui::GetWindowWidth() - 80,pv.y-4 });
@@ -595,7 +597,6 @@ void AppRender()
 					ImGui::End();
 					return;
 				}
-				ToolTip(("Cod Statiune: " + to_string(statiuni[i].codStatiune)).c_str());
 				SetRelPos(0, 10);
 			}
 		}
@@ -778,8 +779,14 @@ void AppExit()
 	auto ans = MessageBox(0, L"Salvezi?", L"Vrei sa salvezi?", MB_OKCANCEL);
 	if (ans == 2)
 		return;
-	ofstream foutS("Statiuni2.db");
-	ofstream foutP("Pensiuni2.db");
+#if	SAVE_IN_SAME_FILE
+
+	ofstream foutS("Statiune.db");
+	ofstream foutP("Pensiune.db");
+#else 
+	ofstream foutS("Statiune2.db");
+	ofstream foutP("Pensiune2.db");
+#endif
 	for (int i = 0; i < statN; i++)
 	{
 		foutS << AddUnderscore(statiuni[i].numeStatiune) << " " << statiuni[i].numeJudet << " " << statiuni[i].codStatiune << '\n';
