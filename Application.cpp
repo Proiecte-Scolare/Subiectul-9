@@ -6,10 +6,8 @@
 #define NR_MAX_STATIUNI 300
 #define NR_MAX_PENSIUNI 300
 #define NR_MAX_NUME 21
-
 #define TOOLTIP_COD 0
 using namespace std;
-
 struct Pensiune
 {
 	char numePensiune[NR_MAX_NUME];
@@ -24,7 +22,6 @@ struct Pensiune
 	Poza poze[NR_MAX_POZE]{};
 }pensiuni[NR_MAX_PENSIUNI];
 
-int pensN,statN;
 struct Statiune
 {
 	char numeStatiune[NR_MAX_NUME];
@@ -38,6 +35,7 @@ struct Statiune
 GLFWwindow* window;
 int display_w, display_h;
 Poza background = { 0,"https://calatorinbascheti.ro/wp-content/uploads/2019/11/61662090-1024x576.jpg",LoadStatus::NotProccesed };
+int pensN,statN;
 
 #pragma region Utility functions
 
@@ -69,6 +67,18 @@ void EliminaUnderscore(char * s)
 		if (*p == '_')
 		
 			*p = ' ';
+}
+
+char* AddUnderscore(char* p)
+{
+	char* pp;
+	pp = p;
+	while (*p)
+	{
+		if (*p == ' ') *p = '_';
+		p++;
+	}
+	return pp;
 }
 
 void AdaugaLocLiberLaStatiune(int codStatiune,int nr)
@@ -761,17 +771,6 @@ void AppRender()
 	}
 	ImGui::PopFont();
 	ImGui::End();
-}
-char* AddUnderscore(char* p)
-{
-	char* pp;
-	pp = p;
-	while (*p)
-	{
-		if (*p == ' ') *p = '_';
-		p++;
-	}
-	return pp;
 }
 void AppExit()
 {

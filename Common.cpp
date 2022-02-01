@@ -47,11 +47,6 @@ ImVec4 Rgb(uchar r, uchar g, uchar b)
 {
 	return { r/255.0f ,g/255.0f,b/255.0f,1.0f };
 }
-
-ImVec4 RandRgb()
-{
-	return ImVec4((float)rand() / RAND_MAX * 0.5 + 0.5, (float)rand() / RAND_MAX * 0.5 + 0.5, (float)rand() / RAND_MAX * 0.5 + 0.5, 1);
-}
 ImVec4 FromHex(char const* hexColor)
 {
 	int r, g, b;
