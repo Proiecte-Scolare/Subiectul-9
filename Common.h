@@ -18,6 +18,7 @@
 #include <streambuf>
 #include <sstream> 
 #include <locale>
+#include <xutility>
 #include <iomanip>
 typedef unsigned char uchar;
 typedef unsigned int uint;

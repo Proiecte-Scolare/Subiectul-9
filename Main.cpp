@@ -34,7 +34,9 @@ int main()
 
     if (glewInit() != GLEW_OK)
     {
+        #ifdef _DEBUG
         std::cout << "Glew Error\n";
+        #endif
         return -1;
     }
 

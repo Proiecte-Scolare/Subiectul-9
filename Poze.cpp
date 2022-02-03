@@ -8,7 +8,8 @@ size_t CallBackFunction(void* ptr, size_t size, size_t nmemb, void* userdata)
 	stream->write((const char*)ptr, size * nmemb);
 	return size * nmemb;
 }
-stringstream LoadImageIntoBuffer(CURL* curlCtx,const char* url)
+int imageLoadedSuccesfully = 0;
+stringstream LoadImageIntoBuffer(CURL* curlCtx, const char* url)
 {
 	stringstream ss;
 	curl_easy_setopt(curlCtx, CURLOPT_SSL_VERIFYPEER, false);
@@ -20,7 +21,10 @@ stringstream LoadImageIntoBuffer(CURL* curlCtx,const char* url)
 	CURLcode rc = curl_easy_perform(curlCtx);
 	if (rc)
 	{
-		printf("!!! Failed to download: %s\n", url);
+#ifdef _DEBUG
+		//printf("!!! Failed to download: %s\n", url);
+#endif // _DEBUG
+		imageLoadedSuccesfully = 0;
 		return ss;
 	}
 
@@ -28,14 +32,22 @@ stringstream LoadImageIntoBuffer(CURL* curlCtx,const char* url)
 	curl_easy_getinfo(curlCtx, CURLINFO_RESPONSE_CODE, &res_code);
 	if (!((res_code == 200 || res_code == 201) && rc != CURLE_ABORTED_BY_CALLBACK))
 	{
-		printf("!!! Response code: %d\n", res_code);
+
+
+#ifdef _DEBUG
+		//printf("!!! Response code: %d\n", res_code);
+#endif // _DEBUG
+		imageLoadedSuccesfully = 0;
 		return ss;
 	}
+	imageLoadedSuccesfully = 1;
 	return ss;
 }
 void LoadImageToMem(CURL* curlCtx,Poza& p, bool flip=false)
 {
 	auto buf = LoadImageIntoBuffer(curlCtx,p.url);
+	if (imageLoadedSuccesfully ==0)
+		return;
 	if (flip)
 		stbi_set_flip_vertically_on_load(1);
 	int ch;
