@@ -44,6 +44,7 @@ enum class ModSortareStatiuni
 	DJudetDStat,
 	DStat,
 	DNrLoc,
+	None=-1,
 };
 
 enum class ModSortarePensiuni
@@ -52,6 +53,7 @@ enum class ModSortarePensiuni
 	DPretCresc,
 	DPretDescr,
 	DNrLoc,
+	None=-1,
 };
 
 void SetRelPos(float x, float y)
@@ -293,11 +295,11 @@ ModSortarePensiuni DropDownSortarePensiune()
 	ImGui::Text("Sortare: ");
 	ImGui::SameLine();
 	static const char* sortOp[] = { "Nume Pensiune","Pret Crescator","Pret Descrescator","Locuri Libere" };
-	static const char* sortCurrent = "";
+	static const char* sortCurrent = 0;
 
 	ImGui::SetNextItemWidth(200);
 	SetRelPos(0, -4);
-	static int sortCurenti = 0;
+	static int sortCurenti = (int) ModSortarePensiuni::None;
 	if (ImGui::BeginCombo("##Sortcombo2", sortCurrent, ImGuiComboFlags_HeightSmall))
 	{
 		for (int i = 0; i < 4; i++)
@@ -308,6 +310,7 @@ ModSortarePensiuni DropDownSortarePensiune()
 				if (isDoneLoadingImages == false)
 					break;
 				sortCurrent = sortOp[i];
+				sortCurenti = i;
 				SortarePensiuni((ModSortarePensiuni)i);
 			}
 			if (is_selected)
@@ -401,9 +404,8 @@ Statiune* statiuneSelectata = 0;
 void AppRender()
 {
 	glfwGetFramebufferSize(window, &display_w, &display_h);
+
 	/// Background
-
-
 	ImGui::SetNextWindowSize({ 5000, 5000 });
 	ImGui::SetNextWindowPos({ -100,-100  });
 	ImGui::Begin("Background", 0, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus);
@@ -426,9 +428,12 @@ void AppRender()
 	ImGui::PopFont();
 	ImGui::PushFont(fontRegular18);
 	
-	auto pv1 = ImGui::GetCursorPos();
+	static ModSortareStatiuni sortareCurentaStatiune = ModSortareStatiuni::None;
+	static ModSortarePensiuni sortareCurentaPensiune = ModSortarePensiuni::None;
 
+	auto pv1 = ImGui::GetCursorPos();
 	style->FramePadding = { 4,4 };
+	
 	if (veziPensiuni)
 	{
 		auto pvv = ImGui::GetCursorPosY();
@@ -436,7 +441,7 @@ void AppRender()
 			veziPensiuni = false, isInMenu1 = 1;
 		auto pv = ImGui::GetCursorPos();
 		ImGui::SetCursorPos({ ImGui::GetWindowWidth() - 300, pvv });
-		DropDownSortarePensiune();
+		sortareCurentaPensiune = DropDownSortarePensiune();
 		ImGui::SetCursorPos(pv);
 		SetRelPos(0, 20);
 		for (int i = 0; i < pensN; i++)
@@ -478,7 +483,6 @@ void AppRender()
 			ImGui::SameLine();
 			static const char* sortOp[] = { "Nume Judet","Nume Statiune","Locuri Libere" };
 			static const char* sortCurrent = "";
-			static ModSortareStatiuni sortCurrenti = ModSortareStatiuni::DJudetDStat;
 			
 			ImGui::SetNextItemWidth(200);
 			if (ImGui::BeginCombo("##Sortcombo", sortCurrent, ImGuiComboFlags_HeightSmall))
@@ -490,7 +494,7 @@ void AppRender()
 					{
 						sortCurrent = sortOp[i];
 						SortareStatiuni((ModSortareStatiuni)i);
-						sortCurrenti = (ModSortareStatiuni)i;
+						sortareCurentaStatiune = (ModSortareStatiuni)i;
 					}
 					if (is_selected)
 					{
@@ -517,7 +521,7 @@ void AppRender()
 				static const char* c1[] = { "Nume Statiune: ","Judet: "};
 				static char* c2[] = { numeStat,0};
 				static const char* judetCbx=0;
-				static const char* judete[] = { "Alba","Arad","Arges","Bacau","Bihor","BistritaNasaud","Botosani","Braila","Brasov","Buzau","Calarasi","CarasSeverin","Cluj","Constanta","Covasna","Dambovita","Dolj","Galati","Giurgiu","Gorj","Harghita","Hunedoara","Ialomita","Iasi","Ilfov","Maramures","Mehedinti","Mures","Neamt","Olt","Prahova","Salaj","SatuMare","Sibiu","Suceava","Teleorman","Timis","Tulcea","Vaslui","Valcea","Vrancea" };
+				static const char* judete[] = { "Alba","Arad","Arges","Bacau","Bihor","Bistrita Nasaud","Botosani","Braila","Brasov","Buzau","Calarasi","Caras Severin","Cluj","Constanta","Covasna","Dambovita","Dolj","Galati","Giurgiu","Gorj","Harghita","Hunedoara","Ialomita","Iasi","Ilfov","Maramures","Mehedinti","Mures","Neamt","Olt","Prahova","Salaj","Satu Mare","Sibiu","Suceava","Teleorman","Timis","Tulcea","Vaslui","Valcea","Vrancea" };
 				if (ImGui::BeginTable("table2", 2))
 				{
 					for (int row = 0; row < 2; row++)
@@ -558,7 +562,7 @@ void AppRender()
 				{
 					adaugaStatiune = false;
 					Statiune& s = AddStatiune(numeStat, judetCbx, GetNewCodStatiune());
-					SortareStatiuni(sortCurrenti);
+					SortareStatiuni(sortareCurentaStatiune);
 				}
 				ImGui::End();
 			}
@@ -570,6 +574,7 @@ void AppRender()
 				if (ImGui::Button(statiuni[i].numeStatiune))
 				{
 					statiuneSelectata = &statiuni[i];
+					SortarePensiuni(sortareCurentaPensiune);
 				}
 				ImGui::SetCursorPos({ pv.x + display_w / 4,pv.y });
 				stringstream ss;
@@ -602,7 +607,10 @@ void AppRender()
 		else {
 			ImGui::SetCursorPos({ImGui::GetWindowWidth()-100, 45});
 			if (ImGui::Button("Inapoi"))
+			{
+				SortareStatiuni(sortareCurentaStatiune);
 				statiuneSelectata = 0;
+			}
 			ImGui::SetCursorPos(pv1);
 			SetRelPos(0, 20);
 		}
@@ -618,7 +626,7 @@ void AppRender()
 			SetRelPos(0, 10); 
 			auto pp = ImGui::GetCursorPos();
 			ImGui::SetCursorPos({ ImGui::GetWindowWidth() - 324,pp.y });
-			ModSortarePensiuni sortareCurr = DropDownSortarePensiune();
+			sortareCurentaPensiune = DropDownSortarePensiune();
 			ImGui::SetCursorPos(pp);
 			
 			auto pv = ImGui::GetCursorPos();
@@ -714,7 +722,6 @@ void AppRender()
 					adaugaPensiune = false;
 					Pensiune& p = AddPensiune(numePens, categorie, pret, rand(), nrLocuri, GetCodStatiuneFromName(statiuneCbx), 0);
 					AdaugaLocLiberLaStatiune(p.codStatiune, p.numarLocuri);
-					///SortarePensiuni(sortareCurr);
 					for (int i = 0; i < NR_MAX_POZE; i++)
 					{
 						p.poze[i] = poze[i];
@@ -739,7 +746,7 @@ void AppRender()
 
 					if (AfiseazaPozele(pensiuni[i].poze, { POZA_SIZE_X,POZA_SIZE_Y }))
 					{
-						SortarePensiuni(sortareCurr);
+						SortarePensiuni(sortareCurentaPensiune);
 					}
 					if (ImGui::Button(("Delete##" + to_string(i)).c_str()))
 					{

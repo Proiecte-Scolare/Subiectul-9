@@ -127,16 +127,24 @@ ImgStatus AfiseazaPoza(Poza& p,const ImVec2& size)
 bool AfiseazaPozele(Poza* poze, const ImVec2& size, int len)
 {
 	bool needsResorting = false;
+	int faildPhotos = 0;
 	auto ip = ImGui::GetCursorPos();
-	for (int i = 0; i < NR_MAX_POZE; i++)
+	for (int i = 0; i < len; i++)
 	{
 		auto pv = ImGui::GetCursorPos();
-		if (AfiseazaPoza(poze[i], size) == ImgStatus::NowLoaded)
+		auto res = AfiseazaPoza(poze[i], size);
+		if (res == ImgStatus::NowLoaded)
 		{
 			needsResorting = true;
 		}
+		else if (res == ImgStatus::NotLoaded)
+			faildPhotos++;
 
 		ImGui::SetCursorPos({ pv.x + size.x + 10,pv.y });
+	}
+	if (faildPhotos == len)
+	{
+		needsResorting = true;
 	}
 	ImGui::SetCursorPos({ ip.x,ip.y + size.y + 10 });
 	return needsResorting;
